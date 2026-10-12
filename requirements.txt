@@ -1,0 +1,14 @@
+tree-sitter
+tree-sitter-python
+tree-sitter-javascript
+sentence-transformers
+chromadb
+rank-bm25
+networkx
+google-genai
+streamlit
+python-dotenv
+numpy
+pandas
+fastapi
+uvicorn

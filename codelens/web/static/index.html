@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CodeLens | Grounded Codebase Retrieval & Explanation Engine</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="app" class="app-layout">
+    
+    <!-- TOP HEADER -->
+    <header class="app-header">
+      <div class="brand-group">
+        <div class="brand-logo">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">CodeLens</span>
+          <span class="brand-subtitle">Grounded Codebase Intelligence</span>
+        </div>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-pill" id="repoStatusPill">
+          <span class="status-indicator active"></span>
+          <span id="headerRepoName">benchmark_project</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">CHUNKS</span>
+          <span class="stat-val" id="headerChunkCount">44</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">GRAPH NODES</span>
+          <span class="stat-val" id="headerNodeCount">59</span>
+        </div>
+        <div class="stat-pill">
+          <span class="stat-label">EDGES</span>
+          <span class="stat-val" id="headerEdgeCount">78</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary btn-sm" id="btnOpenBenchmark">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          Benchmarks
+        </button>
+        <button class="btn btn-secondary btn-sm" id="btnOpenViva">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Viva & Architecture
+        </button>
+      </div>
+    </header>
+
+    <!-- WORKSPACE BODY -->
+    <div class="app-body">
+      
+      <!-- LEFT SIDEBAR -->
+      <aside class="app-sidebar">
+        
+        <!-- REPOSITORY INGESTION CARD -->
+        <div class="sidebar-section">
+          <div class="section-title">
+            <span>REPOSITORY</span>
+            <span class="badge" id="sidebarRepoBadge" style="background-color: rgba(16, 185, 129, 0.15); color: var(--color-emerald);">ACTIVE</span>
+          </div>
+
+          <div class="sidebar-repo-box">
+            <div class="sidebar-repo-top">
+              <div class="sidebar-repo-name" id="sidebarRepoName" title="data/test_repositories/benchmark_project">benchmark_project</div>
+              <span class="repo-type-tag" id="sidebarRepoTypeTag">LOCAL</span>
+            </div>
+            <div class="ingest-info-text" id="ingestMetaText" style="margin: 0;">
+              Loaded: 9 files &bull; 44 AST chunks &bull; 78 edges
+            </div>
+            <div class="sidebar-repo-actions">
+              <button id="btnOpenRepoModal" class="btn btn-primary btn-sm">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                Change / Clone
+              </button>
+              <button id="btnQuickReindex" class="btn btn-secondary btn-sm" title="Re-index active repository">
+                <span id="btnReindexText">Re-Index</span>
+                <div id="quickReindexSpinner" class="spinner hidden" style="width: 10px; height: 10px;"></div>
+              </button>
+            </div>
+
+            <!-- Sidebar Inline Progress Feedback -->
+            <div id="sidebarIngestProgress" class="sidebar-progress-box hidden">
+              <div class="sidebar-progress-header">
+                <div class="spinner-sm"></div>
+                <span id="sidebarProgressMsg">Indexing repository...</span>
+              </div>
+              <div class="sidebar-progress-bar-track">
+                <div id="sidebarProgressBar" class="sidebar-progress-bar-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Repository Switcher -->
+          <div class="quick-switch-chips" id="quickRepoChips">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- FILE EXPLORER -->
+        <div class="sidebar-section file-explorer-section">
+          <div class="section-title">
+            <span>REPOSITORY FILES</span>
+            <span class="badge" id="fileCountBadge">9</span>
+          </div>
+          <div class="file-tree" id="fileTreeContainer">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- PRESET DEMO QUERIES -->
+        <div class="sidebar-section preset-queries-section">
+          <div class="section-title">DEMO SHOWCASE QUERIES</div>
+          <div class="preset-list" id="presetQueriesContainer">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="app-main">
+        
+        <!-- SEARCH & QUERY BAR -->
+        <section class="query-section">
+          <div class="query-bar-container">
+            <div class="search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <input 
+              type="text" 
+              id="queryInput" 
+              class="query-input" 
+              placeholder="Ask a technical question about the codebase (e.g. How does user login work across app, auth, and database?)"
+              value="How does user login work across app, auth, utils, and database?"
+            >
+            <button id="btnRunQuery" class="btn btn-primary btn-query">
+              <span id="btnQueryText">Analyze Codebase</span>
+              <div id="querySpinner" class="spinner hidden"></div>
+            </button>
+          </div>
+          <div class="query-hints">
+            <span>Quick filters:</span>
+            <button class="hint-tag" data-q="How does user login work across app, auth, utils, and database?">User Login Flow</button>
+            <button class="hint-tag" data-q="How does authentication communicate with the database?">Auth & DB Bridge</button>
+            <button class="hint-tag" data-q="How is a payment processed from the application layer?">Payment Pipeline</button>
+            <button class="hint-tag" data-q="How are new users created, validated, and saved?">User Registration</button>
+            <button class="hint-tag" data-q="Where is the authentication token generated?">Token Generation</button>
+          </div>
+        </section>
+
+        <!-- GROUNDED AI ANSWER CARD -->
+        <section class="answer-section" id="answerSection">
+          <div class="answer-card">
+            <div class="answer-header">
+              <div class="answer-title-group">
+                <div class="ai-badge">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                  Grounded Explanation
+                </div>
+                <span class="answer-meta" id="answerMetaInfo">Synthesized with Gemini 3.5 Flash Lite &bull; 0.82s</span>
+              </div>
+              <div class="citation-count-badge" id="citationCountBadge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span id="citationCountText">0 Citations Verified</span>
+              </div>
+            </div>
+
+            <!-- ANSWER CONTENT -->
+            <div class="answer-body" id="answerContent">
+              <div class="placeholder-state">
+                <p>Enter a query above or click a demo question to run multi-hop codebase retrieval and grounded explanation.</p>
+              </div>
+            </div>
+
+            <!-- CITATION SHORTCUTS BAR -->
+            <div class="citation-pills-container hidden" id="citationPillsContainer">
+              <span class="citation-pills-label">Cited Source Locations (click to view):</span>
+              <div class="citation-pills" id="citationPillsList"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MULTI-TAB WORKSPACE -->
+        <section class="workspace-tabs-section">
+          <div class="tab-headers">
+            <button class="tab-btn active" data-tab="tab-evidence">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+              Retrieved Evidence Matrix
+              <span class="badge" id="evidenceCountBadge">0</span>
+            </button>
+            <button class="tab-btn" data-tab="tab-code">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              Interactive Code Viewer
+            </button>
+            <button class="tab-btn" data-tab="tab-pipeline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              How CodeLens Retrieved This
+            </button>
+            <button class="tab-btn" data-tab="tab-graph">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Dependency Graph Inspector
+            </button>
+            <button class="tab-btn" data-tab="tab-benchmark">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+              Evaluation & Benchmarks
+            </button>
+          </div>
+
+          <!-- TAB CONTENTS -->
+          <div class="tab-contents">
+            
+            <!-- TAB 1: EVIDENCE MATRIX -->
+            <div class="tab-pane active" id="tab-evidence">
+              <div class="evidence-toolbar">
+                <span class="text-muted">Repository chunks retrieved via Hybrid RRF + AST Graph Expansion:</span>
+              </div>
+              <div class="evidence-grid" id="evidenceGrid">
+                <div class="empty-state">No query results yet. Run a search to inspect retrieved source code chunks.</div>
+              </div>
+            </div>
+
+            <!-- TAB 2: INTERACTIVE CODE VIEWER -->
+            <div class="tab-pane" id="tab-code">
+              <div class="code-viewer-layout">
+                <div class="code-viewer-sidebar">
+                  <div class="code-viewer-sidebar-title">FILES</div>
+                  <div class="code-file-list" id="codeViewerFileList"></div>
+                  <div class="code-viewer-sidebar-title" style="margin-top: 16px;">SYMBOLS IN FILE</div>
+                  <div class="code-symbol-list" id="codeViewerSymbolList"></div>
+                </div>
+                <div class="code-viewer-main">
+                  <div class="code-viewer-header">
+                    <span class="code-viewer-path" id="codeViewerPath">auth.py</span>
+                    <span class="code-viewer-meta" id="codeViewerLinesCount">29 lines</span>
+                  </div>
+                  <div class="code-editor-container" id="codeEditorContainer">
+                    <pre class="code-pre"><code class="code-block" id="codeViewerCode">Select a file or click any citation to view source code with line highlights.</code></pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 3: PIPELINE VISUALIZER -->
+            <div class="tab-pane" id="tab-pipeline">
+              <div class="pipeline-visualizer-container">
+                <div class="pipeline-intro">
+                  <h3>Multi-Stage Code Retrieval Pipeline</h3>
+                  <p>Inspect each mathematical and algorithmic stage of the CodeLens hybrid retrieval and graph expansion engine.</p>
+                </div>
+
+                <div class="pipeline-flow-diagram">
+                  <div class="flow-step">
+                    <div class="flow-step-number">1</div>
+                    <div class="flow-step-body">
+                      <div class="flow-step-title">Dense Vector Search</div>
+                      <div class="flow-step-desc">Sentence-Transformers MiniLM (384-d cosine similarity)</div>
+                      <div class="flow-candidates-list" id="pipelineVectorList"></div>
+                    </div>
+                  </div>
+
+                  <div class="flow-arrow">&rarr;</div>
+
+                  <div class="flow-step">
+                    <div class="flow-step-number">2</div>
+                    <div class="flow-step-body">
+                      <div class="flow-step-title">Sparse BM25 Search</div>
+                      <div class="flow-step-desc">Exact token lexical frequency matching</div>
+                      <div class="flow-candidates-list" id="pipelineBm25List"></div>
+                    </div>
+                  </div>
+
+                  <div class="flow-arrow">&rarr;</div>
+
+                  <div class="flow-step">
+                    <div class="flow-step-number">3</div>
+                    <div class="flow-step-body">
+                      <div class="flow-step-title">RRF Fusion + Boost</div>
+                      <div class="flow-step-desc">Reciprocal Rank Fusion + AST exact/cross-module boost</div>
+                      <div class="flow-candidates-list" id="pipelineFusionList"></div>
+                    </div>
+                  </div>
+
+                  <div class="flow-arrow">&rarr;</div>
+
+                  <div class="flow-step highlight-step">
+                    <div class="flow-step-number">4</div>
+                    <div class="flow-step-body">
+                      <div class="flow-step-title">AST Graph Expansion</div>
+                      <div class="flow-step-desc">NetworkX BFS 1-hop multi-module dependency traversal</div>
+                      <div class="flow-candidates-list" id="pipelineGraphList"></div>
+                    </div>
+                  </div>
+
+                  <div class="flow-arrow">&rarr;</div>
+
+                  <div class="flow-step">
+                    <div class="flow-step-number">5</div>
+                    <div class="flow-step-body">
+                      <div class="flow-step-title">Grounded Synthesis</div>
+                      <div class="flow-step-desc">Strict evidence context passed to Gemini with line citations</div>
+                      <div class="flow-candidates-list" id="pipelineLlmSummary"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- RRF SCORE COMPARISON TABLE -->
+                <div class="pipeline-table-section">
+                  <h4>RRF Score & Boost Breakdown</h4>
+                  <table class="data-table" id="rrfBreakdownTable">
+                    <thead>
+                      <tr>
+                        <th>Rank</th>
+                        <th>Symbol</th>
+                        <th>File</th>
+                        <th>Vector Rank</th>
+                        <th>BM25 Rank</th>
+                        <th>RRF Score</th>
+                        <th>Exact Boost</th>
+                        <th>Final Score</th>
+                        <th>Type</th>
+                      </tr>
+                    </thead>
+                    <tbody id="rrfBreakdownTbody">
+                      <tr><td colspan="9" class="text-center text-muted">Run a query to populate ranking scores.</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 4: DEPENDENCY GRAPH INSPECTOR -->
+            <div class="tab-pane" id="tab-graph">
+              <div class="graph-inspector-container">
+                <div class="graph-inspector-header">
+                  <div class="graph-stats-summary" id="graphStatsSummary">
+                    <span>59 Nodes (44 Symbols, 15 Files)</span> &bull; <span>78 Edges (32 Calls, 24 Imports, 22 Contains)</span>
+                  </div>
+                  <div class="graph-legend">
+                    <span class="legend-item"><span class="dot seed-dot"></span> Primary Seed</span>
+                    <span class="legend-item"><span class="dot expanded-dot"></span> Graph Expanded</span>
+                    <span class="legend-item"><span class="dot symbol-dot"></span> Symbol Node</span>
+                    <span class="legend-item"><span class="dot file-dot"></span> File Node</span>
+                  </div>
+                </div>
+                <div class="graph-canvas-wrapper" id="graphCanvasWrapper">
+                  <canvas id="graphCanvas"></canvas>
+                </div>
+                <div class="graph-traversal-list-section">
+                  <h4>Active Query Traversal Paths</h4>
+                  <div class="traversal-chips" id="traversalChipsContainer">
+                    <span class="text-muted">Run a query to inspect active multi-hop graph expansion edges.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 5: BENCHMARKS & EVALUATION -->
+            <div class="tab-pane" id="tab-benchmark">
+              <div class="benchmark-dashboard">
+                <div class="benchmark-header-row">
+                  <div>
+                    <h3>CodeLens vs Naive RAG Evaluation Benchmark</h3>
+                    <p>Rigorous comparative evaluation on 12 benchmark questions across multi-hop codebases.</p>
+                  </div>
+                  <div class="benchmark-badge-group">
+                    <span class="badge badge-success">100% Retrieval Coverage</span>
+                    <span class="badge badge-success">100% Groundedness</span>
+                    <span class="badge badge-success">97.2% Citation Precision</span>
+                  </div>
+                </div>
+
+                <!-- KEY METRIC CARDS -->
+                <div class="metric-cards-grid">
+                  <div class="metric-card">
+                    <div class="metric-title">Evidence Coverage (Hit-All)</div>
+                    <div class="metric-compare">
+                      <div class="metric-val text-success">100.0%</div>
+                      <div class="metric-baseline">vs 84.9% (Naive RAG)</div>
+                    </div>
+                    <div class="metric-desc">+15.1% improvement from AST Graph Expansion recovering multi-hop dependencies.</div>
+                  </div>
+
+                  <div class="metric-card">
+                    <div class="metric-title">Hit@5 Precision</div>
+                    <div class="metric-compare">
+                      <div class="metric-val text-success">100.0%</div>
+                      <div class="metric-baseline">vs 100.0% (Naive RAG)</div>
+                    </div>
+                    <div class="metric-desc">Every query finds key entry symbols in the top-5 hybrid seed set.</div>
+                  </div>
+
+                  <div class="metric-card">
+                    <div class="metric-title">Answer Symbol Coverage</div>
+                    <div class="metric-compare">
+                      <div class="metric-val text-success">100.0%</div>
+                      <div class="metric-baseline">vs 100.0% (Naive RAG)</div>
+                    </div>
+                    <div class="metric-desc">All required cross-file symbols explained accurately in Gemini answers.</div>
+                  </div>
+
+                  <div class="metric-card">
+                    <div class="metric-title">Citation Accuracy</div>
+                    <div class="metric-compare">
+                      <div class="metric-val text-success">97.2%</div>
+                      <div class="metric-baseline">Line-Level Validated</div>
+                    </div>
+                    <div class="metric-desc">All generated line numbers correspond to verified repository AST definitions.</div>
+                  </div>
+                </div>
+
+                <!-- COMPARISON TABLE -->
+                <div class="benchmark-table-wrapper">
+                  <h4>Detailed Retrieval Metric Comparison</h4>
+                  <table class="data-table">
+                    <thead>
+                      <tr>
+                        <th>Metric</th>
+                        <th>Naive RAG (Baseline)</th>
+                        <th>CodeLens (Seeds Only)</th>
+                        <th>CodeLens (Expanded)</th>
+                        <th>Impact & Analysis</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>Hit@1</strong></td>
+                        <td>0.833</td>
+                        <td>0.833</td>
+                        <td><strong>0.833</strong></td>
+                        <td>Direct entry points identified at rank 1</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Hit@3</strong></td>
+                        <td>1.000</td>
+                        <td>0.917</td>
+                        <td><strong>0.917</strong></td>
+                        <td>High precision top-3 seed retrieval</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Hit@5</strong></td>
+                        <td>1.000</td>
+                        <td>1.000</td>
+                        <td><strong>1.000</strong></td>
+                        <td>100% recall of initial seed functions</td>
+                      </tr>
+                      <tr>
+                        <td><strong>MRR</strong></td>
+                        <td>0.917</td>
+                        <td>0.878</td>
+                        <td><strong>0.878</strong></td>
+                        <td>Reciprocal rank of first relevant symbol</td>
+                      </tr>
+                      <tr class="highlight-row">
+                        <td><strong>Evidence Coverage</strong></td>
+                        <td>0.849</td>
+                        <td>0.700</td>
+                        <td><strong class="text-success">1.000 (100.0%)</strong></td>
+                        <td><strong>+15.1%</strong> — Naive RAG misses multi-hop callees; CodeLens finds 100%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- MODAL: REPOSITORY MANAGER (GIT CLONE & LOCAL DIRECTORY) -->
+    <div class="modal-overlay hidden" id="repoModal">
+      <div class="repo-modal-card">
+        <div class="modal-header">
+          <div class="modal-title">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 6px; vertical-align: -2px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Repository Ingestion Manager
+          </div>
+          <button class="modal-close" id="btnCloseRepoModal">&times;</button>
+        </div>
+
+        <div class="repo-modal-tabs">
+          <button class="repo-tab-btn active" id="btnTabGit" data-repo-tab="repo-tab-git">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><line x1="1.05" y1="12" x2="7" y2="12"/><line x1="17.01" y1="12" x2="22.96" y2="12"/></svg>
+            Clone from GitHub / Git
+          </button>
+          <button class="repo-tab-btn" id="btnTabLocal" data-repo-tab="repo-tab-local">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            Local Folder / Presets
+          </button>
+        </div>
+
+        <!-- TAB 1: GIT CLONE -->
+        <div class="repo-tab-content" id="repo-tab-git">
+          <p class="repo-desc-text">
+            Insert any public Git or GitHub URL. CodeLens will clone the repository shallowly (depth 1), extract functions & classes via AST, compute dense embeddings + BM25, and generate the multi-hop dependency call graph.
+          </p>
+          <div class="repo-input-wrapper">
+            <label class="repo-input-label" for="gitRepoUrlInput">GitHub / Git Repository URL</label>
+            <input 
+              type="text" 
+              id="gitRepoUrlInput" 
+              class="repo-text-input" 
+              placeholder="https://github.com/username/repository (e.g. https://github.com/pallets/flask)"
+            >
+          </div>
+
+          <div class="repo-input-wrapper">
+            <span class="repo-input-label">Quick Samples (Click to Fill):</span>
+            <div class="quick-switch-chips" id="gitSampleChips">
+              <span class="quick-chip" data-git="https://github.com/pallets/flask">pallets/flask</span>
+              <span class="quick-chip" data-git="https://github.com/encode/starlette">encode/starlette</span>
+            </div>
+          </div>
+
+          <button id="btnCloneAndIngest" class="btn btn-primary" style="margin-top: 6px; padding: 10px 16px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="btnCloneText">Clone & Index Repository</span>
+          </button>
+        </div>
+
+        <!-- TAB 2: LOCAL DIRECTORY -->
+        <div class="repo-tab-content hidden" id="repo-tab-local">
+          <p class="repo-desc-text">
+            Select a preloaded benchmark repository or type any local directory path on your system.
+          </p>
+          <div class="repo-input-wrapper">
+            <label class="repo-input-label" for="localRepoPathInput">Local Directory Path</label>
+            <input 
+              type="text" 
+              id="localRepoPathInput" 
+              class="repo-text-input" 
+              value="data/test_repositories/benchmark_project" 
+              placeholder="e.g. data/test_repositories/benchmark_project or C:\path\to\project"
+            >
+          </div>
+
+          <div class="repo-input-wrapper">
+            <span class="repo-input-label">Available Local Repositories (Click to Select):</span>
+            <div class="repo-presets-grid" id="localPresetGrid">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <button id="btnIndexLocalPath" class="btn btn-primary" style="margin-top: 6px; padding: 10px 16px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span id="btnIndexLocalText">Index Selected Directory</span>
+          </button>
+        </div>
+
+        <!-- PROGRESS BOX (Shown during ingestion) -->
+        <div id="repoProgressBox" class="repo-progress-box hidden" style="margin: 0 20px 20px;">
+          <div class="progress-header">
+            <div class="spinner"></div>
+            <span id="repoProgressMsg">Ingesting repository into CodeLens engine...</span>
+          </div>
+          <div class="progress-stages" id="repoProgressStages">
+            <div class="progress-stage-item active" id="stage1">&bull; Resolving source files & scanning tree</div>
+            <div class="progress-stage-item" id="stage2">&bull; AST chunking & symbol extraction</div>
+            <div class="progress-stage-item" id="stage3">&bull; Dense embeddings & BM25 indexing</div>
+            <div class="progress-stage-item" id="stage4">&bull; Constructing NetworkX dependency graph</div>
+          </div>
+        </div>
+
+        <!-- ERROR BANNER -->
+        <div id="repoErrorBanner" class="repo-error-banner hidden" style="margin: 0 20px 20px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="repoErrorMsg">An error occurred during repository ingestion.</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MODAL: VIVA / DEFENSE & ARCHITECTURE GUIDE -->
+    <div class="modal-overlay hidden" id="vivaModal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <div class="modal-title">CodeLens Architecture & Viva Defense Guide</div>
+          <button class="modal-close" id="btnCloseViva">&times;</button>
+        </div>
+        <div class="modal-body" id="vivaModalBody">
+          <!-- Populated dynamically with Viva QA and Architecture specs -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

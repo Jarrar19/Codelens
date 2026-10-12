@@ -1,0 +1,49 @@
+# Virtual environment
+venv/
+ENV/
+env/
+
+# Environment variables & secrets
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+!frontend/.env.example
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# ChromaDB & Vector stores
+chroma_db/
+*.sqlite3
+*.sqlite3-journal
+
+# Cloned repositories (runtime downloads)
+data/cloned_repositories/*
+!data/cloned_repositories/.gitkeep
+
+# Pickled & binary assets
+*.pkl
+*.pickle
+*.npy
+
+# IDE & Editor artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Frontend Node & Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/*.log

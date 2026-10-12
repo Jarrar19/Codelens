@@ -1,0 +1,108 @@
+{
+  "repository": "benchmark_project",
+  "questions": [
+    {
+      "id": 1,
+      "question": "How does user login work?",
+      "expected_symbols": [
+        "handle_login",
+        "login_user",
+        "hash_password",
+        "find_user",
+        "generate_token"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "Where is the authentication token generated?",
+      "expected_symbols": [
+        "generate_token"
+      ]
+    },
+    {
+      "id": 3,
+      "question": "How does authentication communicate with the database?",
+      "expected_symbols": [
+        "login_user",
+        "find_user"
+      ]
+    },
+    {
+      "id": 4,
+      "question": "How is a user's password processed during login?",
+      "expected_symbols": [
+        "login_user",
+        "hash_password"
+      ]
+    },
+    {
+      "id": 5,
+      "question": "How is a payment processed from the application layer?",
+      "expected_symbols": [
+        "make_payment",
+        "process_payment",
+        "find_user_by_id",
+        "generate_transaction_id"
+      ]
+    },
+    {
+      "id": 6,
+      "question": "How does the application refund a payment?",
+      "expected_symbols": [
+        "refund_payment"
+      ]
+    },
+    {
+      "id": 7,
+      "question": "How is a welcome email sent?",
+      "expected_symbols": [
+        "send_welcome_email",
+        "send_email"
+      ]
+    },
+    {
+      "id": 8,
+      "question": "How are new users created?",
+      "expected_symbols": [
+        "register_user",
+        "create_user",
+        "validate_email",
+        "save_user"
+      ]
+    },
+    {
+      "id": 9,
+      "question": "How does the application retrieve a user?",
+      "expected_symbols": [
+        "show_user",
+        "get_user",
+        "find_user_by_id"
+      ]
+    },
+    {
+      "id": 10,
+      "question": "How is a report generated?",
+      "expected_symbols": [
+        "create_report",
+        "generate_report",
+        "find_user_by_id"
+      ]
+    },
+    {
+      "id": 11,
+      "question": "How does the system validate an email address?",
+      "expected_symbols": [
+        "validate_email"
+      ]
+    },
+    {
+      "id": 12,
+      "question": "How does logout work?",
+      "expected_symbols": [
+        "handle_logout",
+        "logout_user",
+        "invalidate_token"
+      ]
+    }
+  ]
+}
